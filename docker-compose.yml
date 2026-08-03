@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: employee_management
+      MYSQL_USER: employee_user
+      MYSQL_PASSWORD: employee123
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  employee-api:
+    build: .
+
+    container_name: employee-api
+
+    restart: always
+
+    depends_on:
+      - mysql
+
+    env_file:
+      - .env
+
+    ports:
+      - "5000:5000"
+
+volumes:
+  mysql_data:
