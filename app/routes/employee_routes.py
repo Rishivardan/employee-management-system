@@ -15,8 +15,8 @@ employee_bp = Blueprint("employee", __name__)
 @employee_bp.route("/")
 def home():
     return jsonify({
-        "message": "Welcome to Employee Management System API 🚀",
-        "version": "1.0.0"
+        "message": "Welcome to Employee Management API - Version 2 🚀",
+        "version": "2.0.0"
     })
 
 
