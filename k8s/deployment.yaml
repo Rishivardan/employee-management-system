@@ -20,10 +20,22 @@ spec:
       containers:
       - name: employee-management
         image: rishiadl29/employee-management-system:latest
-        imagePullPolicy: Always
-
         ports:
         - containerPort: 5000
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
 
         env:
         - name: DB_HOST
