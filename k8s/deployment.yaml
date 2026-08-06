@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: employee-management
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: employee-management
+
+  template:
+    metadata:
+      labels:
+        app: employee-management
+
+    spec:
+      containers:
+      - name: employee-management
+        image: rishiadl29/employee-management-system:latest
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 5000
+
+        env:
+        - name: DB_HOST
+          value: "mysql"
+
+        - name: DB_PORT
+          value: "3306"
+
+        - name: DB_NAME
+          value: "employee_management"
+
+        - name: DB_USER
+          value: "employee_user"
+
+        - name: DB_PASSWORD
+          value: "employee123"
