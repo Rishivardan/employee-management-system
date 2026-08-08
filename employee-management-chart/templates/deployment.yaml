@@ -16,7 +16,7 @@ spec:
       annotations:
 {{ toYaml .Values.podAnnotations | indent 8 }}
     spec:
-      
+      serviceAccountName: default
       securityContext:
 {{ toYaml .Values.podSecurityContext | indent 8 }}
       containers:
