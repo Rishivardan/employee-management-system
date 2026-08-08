@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "employee-management-chart.fullname" . }}
+  labels:
+{{ include "employee-management-chart.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+{{ include "employee-management-chart.selectorLabels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ include "employee-management-chart.selectorLabels" . | indent 8 }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+    spec:
+      serviceAccountName: {{ include "employee-management-chart.serviceAccountName" . }}
+      securityContext:
+{{ toYaml .Values.podSecurityContext | indent 8 }}
+      containers:
+        - name: {{ include "employee-management-chart.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+          livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 12 }}
+          readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 12 }}
+          env:
+            - name: DB_HOST
+              value: {{ .Values.config.DB_HOST | quote }}
+            - name: DB_PORT
+              value: {{ .Values.config.DB_PORT | quote }}
+            - name: DB_NAME
+              value: {{ .Values.config.DB_NAME | quote }}
+            - name: DB_USER
+              value: {{ .Values.config.DB_USER | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-secret
+                  key: DB_PASSWORD
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 12 }}
+      volumes:
+{{ toYaml .Values.volumes | indent 8 }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
