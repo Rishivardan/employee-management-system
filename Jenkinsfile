@@ -4,9 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = "rishiadl29/employee-management-system"
         IMAGE_TAG  = "v${BUILD_NUMBER}"
-
-        HELM_RELEASE = "employee-app"
-        HELM_CHART   = "./employee-management-chart"
     }
 
     stages {
@@ -21,9 +18,7 @@ pipeline {
             steps {
                 sh '''
                     docker --version
-                    kubectl version --client
-                    helm version
-                    kubectl config current-context
+                    git --version
                 '''
             }
         }
@@ -52,7 +47,6 @@ pipeline {
                         passwordVariable: 'DOCKERHUB_PASSWORD'
                     )
                 ]) {
-
                     sh '''
                         set -e
 
@@ -67,12 +61,12 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
-
         success {
             echo "CI SUCCESS ✅"
-            echo "Deployed image: ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "Built and pushed image: ${IMAGE_NAME}:${IMAGE_TAG}"
         }
 
         failure {
