@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: argocd-prune-test
+
+data:
+  message: "Testing ArgoCD prune"
