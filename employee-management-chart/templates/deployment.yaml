@@ -1,58 +1,112 @@
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
   name: {{ include "employee-management-chart.fullname" . }}
+
   labels:
-{{ include "employee-management-chart.labels" . | indent 4 }}
+    {{- include "employee-management-chart.labels" . | nindent 4 }}
+
 spec:
   replicas: {{ .Values.replicaCount }}
+
   selector:
     matchLabels:
-{{ include "employee-management-chart.selectorLabels" . | indent 6 }}
+      {{- include "employee-management-chart.selectorLabels" . | nindent 6 }}
+
   template:
+
     metadata:
       labels:
-{{ include "employee-management-chart.selectorLabels" . | indent 8 }}
+        {{- include "employee-management-chart.selectorLabels" . | nindent 8 }}
+
+      {{- with .Values.podAnnotations }}
       annotations:
-{{ toYaml .Values.podAnnotations | indent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
     spec:
+
       serviceAccountName: default
+
       securityContext:
-{{ toYaml .Values.podSecurityContext | indent 8 }}
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
       containers:
+
         - name: {{ include "employee-management-chart.name" . }}
+
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+
           ports:
+
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.service.targetPort }}
+
           livenessProbe:
-{{ toYaml .Values.livenessProbe | indent 12 }}
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+
           readinessProbe:
-{{ toYaml .Values.readinessProbe | indent 12 }}
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+
           env:
+
             - name: DB_HOST
-              value: {{ .Values.config.DB_HOST | quote }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_HOST
+
             - name: DB_PORT
-              value: {{ .Values.config.DB_PORT | quote }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_PORT
+
             - name: DB_NAME
-              value: {{ .Values.config.DB_NAME | quote }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_NAME
+
             - name: DB_USER
-              value: {{ .Values.config.DB_USER | quote }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_USER
+
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "employee-management-chart.fullname" . }}-secret
                   key: DB_PASSWORD
+
           resources:
-{{ toYaml .Values.resources | indent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          {{- with .Values.volumeMounts }}
           volumeMounts:
-{{ toYaml .Values.volumeMounts | indent 12 }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+      {{- with .Values.volumes }}
       volumes:
-{{ toYaml .Values.volumes | indent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml .Values.nodeSelector | indent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml .Values.tolerations | indent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.affinity }}
       affinity:
-{{ toYaml .Values.affinity | indent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
