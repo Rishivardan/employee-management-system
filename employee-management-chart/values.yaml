@@ -1,4 +1,4 @@
-replicaCount: 2
+replicaCount: 3
 
 image:
   repository: rishiadl29/employee-management-system
@@ -74,7 +74,8 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 
 
-podAnnotations: {}
+podAnnotations:
+  learning-version: "v2"
 
 podSecurityContext: {}
 
