@@ -61,6 +61,28 @@ pipeline {
                 }
             }
         }
+
+
+        stage('Update Helm Image Tag') {
+            steps {
+                sh '''
+                    set -e
+
+                    sed -i \
+                      's/tag: "v[0-9]*"/tag: "'"$IMAGE_TAG"'"/' \
+                      employee-management-chart/values.yaml
+
+                    git config user.name "jenkins"
+                    git config user.email "jenkins@local"
+
+                    git add employee-management-chart/values.yaml
+
+                    git commit \
+                      -m "Deploy $IMAGE_TAG via Jenkins" \
+                      || echo "No changes to commit"
+                '''
+            }
+        }
     }
 
     post {
