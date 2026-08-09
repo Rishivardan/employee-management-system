@@ -14,7 +14,35 @@ pipeline {
             }
         }
 
+        stage('Check Trigger') {
+            steps {
+                script {
+                    def commitMessage = sh(
+                        script: 'git log -1 --pretty=%B',
+                        returnStdout: true
+                    ).trim()
+
+                    if (commitMessage.startsWith('Deploy v') &&
+                        commitMessage.endsWith(' via Jenkins')) {
+
+                        echo "Jenkins-generated GitOps commit detected."
+                        echo "Skipping build to prevent infinite loop."
+
+                        env.SKIP_BUILD = "true"
+                    } else {
+                        env.SKIP_BUILD = "false"
+                    }
+                }
+            }
+        }
+
         stage('Verify Tools') {
+            when {
+                expression {
+                    env.SKIP_BUILD != "true"
+                }
+            }
+
             steps {
                 sh '''
                     docker --version
@@ -24,6 +52,12 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            when {
+                expression {
+                    env.SKIP_BUILD != "true"
+                }
+            }
+
             steps {
                 sh '''
                     set -e
@@ -39,6 +73,12 @@ pipeline {
         }
 
         stage('Push Docker Image') {
+            when {
+                expression {
+                    env.SKIP_BUILD != "true"
+                }
+            }
+
             steps {
                 withCredentials([
                     usernamePassword(
@@ -47,6 +87,7 @@ pipeline {
                         passwordVariable: 'DOCKERHUB_PASSWORD'
                     )
                 ]) {
+
                     sh '''
                         set -e
 
@@ -62,30 +103,55 @@ pipeline {
             }
         }
 
-
         stage('Update Helm Image Tag') {
+            when {
+                expression {
+                    env.SKIP_BUILD != "true"
+                }
+            }
+
             steps {
-                sh '''
-                    set -e
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'github-credentials',
+                        usernameVariable: 'GITHUB_USERNAME',
+                        passwordVariable: 'GITHUB_TOKEN'
+                    )
+                ]) {
 
-                    sed -i \
-                      's/tag: "v[0-9]*"/tag: "'"$IMAGE_TAG"'"/' \
-                      employee-management-chart/values.yaml
+                    sh '''
+                        set -e
 
-                    git config user.name "jenkins"
-                    git config user.email "jenkins@local"
+                        echo "Updating Helm image tag to $IMAGE_TAG"
 
-                    git add employee-management-chart/values.yaml
+                        sed -i \
+                          's/tag: "v[0-9]*"/tag: "'"$IMAGE_TAG"'"/' \
+                          employee-management-chart/values.yaml
 
-                    git commit \
-                      -m "Deploy $IMAGE_TAG via Jenkins" \
-                      || echo "No changes to commit"
-                '''
+                        git config user.name "jenkins"
+                        git config user.email "jenkins@local"
+
+                        git add employee-management-chart/values.yaml
+
+                        if git diff --cached --quiet; then
+                            echo "No changes to commit."
+                            exit 0
+                        fi
+
+                        git commit -m "Deploy $IMAGE_TAG via Jenkins"
+
+                        git remote set-url origin \
+                          "https://$GITHUB_USERNAME:$GITHUB_TOKEN@github.com/Rishivardan/employee-management-system.git"
+
+                        git push origin HEAD:main
+                    '''
+                }
             }
         }
     }
 
     post {
+
         success {
             echo "CI SUCCESS ✅"
             echo "Built and pushed image: ${IMAGE_NAME}:${IMAGE_TAG}"
