@@ -1,4 +1,4 @@
-replicaCount: 20
+replicaCount: 4
 
 image:
   repository: rishiadl29/employee-management-system
