@@ -68,54 +68,15 @@ pipeline {
             }
         }
 
-        stage('Verify Kubernetes') {
-            steps {
-                sh '''
-                    kubectl get nodes
-                    kubectl get pods
-                '''
-            }
-        }
-
-        stage('Deploy with Helm') {
-            steps {
-                sh '''
-                    set -e
-
-                    helm upgrade --install \
-                      "$HELM_RELEASE" \
-                      "$HELM_CHART" \
-                      --set image.repository="$IMAGE_NAME" \
-                      --set image.tag="$IMAGE_TAG" \
-                      --wait
-                '''
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                sh '''
-                    kubectl rollout status \
-                      deployment/employee-management \
-                      --timeout=120s
-
-                    kubectl get pods
-                    kubectl get services
-                    helm list
-                '''
-            }
-        }
-    }
-
     post {
 
         success {
-            echo "CI/CD SUCCESS ✅"
+            echo "CI SUCCESS ✅"
             echo "Deployed image: ${IMAGE_NAME}:${IMAGE_TAG}"
         }
 
         failure {
-            echo "CI/CD FAILED ❌"
+            echo "CI FAILED ❌"
             echo "Check the failed stage in Jenkins Console Output."
         }
 
