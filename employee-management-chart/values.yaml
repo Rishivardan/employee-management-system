@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: rishiadl29/employee-management-system
-  tag: "v36"
+  tag: "v38"
   pullPolicy: Always
 
 
