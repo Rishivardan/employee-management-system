@@ -87,7 +87,6 @@ pipeline {
                         passwordVariable: 'DOCKERHUB_PASSWORD'
                     )
                 ]) {
-
                     sh '''
                         set -e
 
@@ -103,7 +102,7 @@ pipeline {
             }
         }
 
-        stage('Update Helm Image Tag') {
+        stage('Update DEV Image Tag') {
             when {
                 expression {
                     env.SKIP_BUILD != "true"
@@ -118,20 +117,19 @@ pipeline {
                         passwordVariable: 'GITHUB_TOKEN'
                     )
                 ]) {
-
                     sh '''
                         set -e
 
-                        echo "Updating Helm image tag to $IMAGE_TAG"
+                        echo "Updating DEV Helm image tag to $IMAGE_TAG"
 
                         sed -i \
                           's/tag: "v[0-9]*"/tag: "'"$IMAGE_TAG"'"/' \
-                          employee-management-chart/values.yaml
+                          employee-management-chart/values-dev.yaml
 
                         git config user.name "jenkins"
                         git config user.email "jenkins@local"
 
-                        git add employee-management-chart/values.yaml
+                        git add employee-management-chart/values-dev.yaml
 
                         if git diff --cached --quiet; then
                             echo "No changes to commit."
@@ -151,10 +149,10 @@ pipeline {
     }
 
     post {
-
         success {
             echo "CI SUCCESS ✅"
             echo "Built and pushed image: ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "DEV values updated for Argo CD deployment."
         }
 
         failure {
