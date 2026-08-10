@@ -1,5 +1,5 @@
 image:
-  tag: "v33"
+  tag: "v42"
 
 autoscaling:
   enabled: true
