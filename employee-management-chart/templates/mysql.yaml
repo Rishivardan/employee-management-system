@@ -4,6 +4,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
 
+annotations:
+  argocd.argoproj.io/sync-wave: "-1"
+
 spec:
   accessModes:
     - ReadWriteOnce
@@ -18,6 +21,9 @@ kind: Deployment
 
 metadata:
   name: mysql
+
+annotations:
+  argocd.argoproj.io/sync-wave: "-1"
 
 spec:
   replicas: 1
@@ -68,6 +74,9 @@ kind: Service
 
 metadata:
   name: mysql
+
+annotations:
+  argocd.argoproj.io/sync-wave: "-1"
 
 spec:
   type: ClusterIP

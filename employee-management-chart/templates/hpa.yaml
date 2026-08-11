@@ -5,6 +5,8 @@ kind: HorizontalPodAutoscaler
 
 metadata:
   name: {{ include "employee-management-chart.fullname" . }}-hpa
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 
 spec:
   scaleTargetRef:

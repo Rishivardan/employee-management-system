@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+
+metadata:
+  name: employee-management-environments
+  namespace: argocd
+
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            valuesFile: values-dev.yaml
+
+          - env: staging
+            valuesFile: values-staging.yaml
+
+          - env: prod
+            valuesFile: values-prod.yaml
+
+  template:
+
+    metadata:
+      name: 'employee-management-{{env}}'
+
+    spec:
+      project: employee-management-project
+
+      source:
+        repoURL: https://github.com/Rishivardan/employee-management-system.git
+        targetRevision: main
+        path: employee-management-chart
+
+        helm:
+          valueFiles:
+            - '{{valuesFile}}'
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{env}}'
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
