@@ -1,0 +1,84 @@
+{{- if .Values.rollout.enabled }}
+
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+
+metadata:
+  name: {{ include "employee-management-chart.fullname" . }}
+
+  labels:
+    {{- include "employee-management-chart.labels" . | nindent 4 }}
+
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+
+  selector:
+    matchLabels:
+      {{- include "employee-management-chart.selectorLabels" . | nindent 6 }}
+
+  template:
+    metadata:
+      labels:
+        {{- include "employee-management-chart.selectorLabels" . | nindent 8 }}
+
+    spec:
+      serviceAccountName: default
+
+      containers:
+        - name: {{ include "employee-management-chart.name" . }}
+
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_PORT
+
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_NAME
+
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-config
+                  key: DB_USER
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "employee-management-chart.fullname" . }}-secret
+                  key: DB_PASSWORD
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {}
+
+        - setWeight: 50
+        - pause: {}
+
+{{- end }}
