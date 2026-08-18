@@ -1,3 +1,7 @@
+{{- if not .Values.rollout.enabled }}
+
+# your existing Deployment YAML here
+
 apiVersion: apps/v1
 kind: Deployment
 
@@ -113,3 +117,5 @@ spec:
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+
+{{- end }}
